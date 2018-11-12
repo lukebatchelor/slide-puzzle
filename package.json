@@ -1,0 +1,50 @@
+{
+  "name": "slide-puzzle",
+  "private": true,
+  "description": "Simple slide puzzle webapp game",
+  "version": "1.0.0",
+  "author": "Luke Batchelor",
+  "dependencies": {
+    "gatsby": "^2.0.19",
+    "gatsby-image": "^2.0.15",
+    "gatsby-plugin-manifest": "^2.0.5",
+    "gatsby-plugin-offline": "^2.0.5",
+    "gatsby-plugin-react-helmet": "^3.0.0",
+    "gatsby-plugin-sharp": "^2.0.7",
+    "gatsby-source-filesystem": "^2.0.4",
+    "gatsby-transformer-sharp": "^2.1.4",
+    "husky": "^1.1.2",
+    "lint-staged": "^7.3.0",
+    "react": "^16.5.1",
+    "react-dom": "^16.5.1",
+    "react-helmet": "^5.2.0"
+  },
+  "keywords": [
+    "gatsby"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "build": "gatsby build",
+    "develop": "gatsby develop",
+    "dev": "gatsby develop",
+    "format": "prettier --write \"src/**/*.js\""
+  },
+  "devDependencies": {
+    "prettier": "^1.14.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gatsbyjs/gatsby-starter-default"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,json,css}": [
+      "prettier --write",
+      "git add"
+    ]
+  }
+}

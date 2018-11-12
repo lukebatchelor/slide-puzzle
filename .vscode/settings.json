@@ -1,0 +1,7 @@
+{
+  "editor.formatOnSave": true,
+  "workbench.settings.editor": "json",
+  "emmet.includeLanguages": {
+    "javascript": "javascriptreact"
+  }
+}
