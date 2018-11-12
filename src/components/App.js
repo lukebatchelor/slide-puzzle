@@ -51,8 +51,6 @@ export default class App extends React.Component {
     if (this.state.curState === 'PUZZLE') {
       this.setState({
         curState: 'IMAGE_RESIZE',
-        backEnabled: true,
-        nextEnabled: true,
       });
     }
   };
@@ -74,13 +72,14 @@ export default class App extends React.Component {
       const resizedImageData = ctx.getImageData(
         Math.max(this.xOffset, 0),
         Math.max(this.yOffset, 0),
-        Math.min(newImgWidth + this.xOffset, canvasWidth),
-        Math.min(newImgHeight + this.yOffset, canvasHeight)
+        Math.min(newImgWidth, canvasWidth),
+        Math.min(newImgHeight, canvasHeight)
       );
       this.setState({
         curState: 'PUZZLE',
         resizedImageData,
-        backEnabled: true,
+        backEnabled: false,
+        nextEnabled: false,
       });
     }
   };

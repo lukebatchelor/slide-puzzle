@@ -1,5 +1,17 @@
 import React from 'react';
 
+const buttonStyles = {
+  border: '2px solid gray',
+  color: 'gray',
+  backgroundColor: 'white',
+  padding: '8px 10px',
+  borderRadius: '8px',
+  fontSize: '20px',
+  fontWeight: 'bold',
+  outline: 'none',
+  userSelect: 'none',
+};
+
 // Return an array of indexes of pieces that can legally be moved
 // We will know which piece can be moved by looking at the pieces order, finding
 // where the null is (the gap piece) and looking for which indexes would neighbour
@@ -47,9 +59,10 @@ function shufflePieces(piecesOrder) {
 
   // Keep track of the last move so we don't undo it immediately
   let lastMove = 0;
-  for (let i = 0; i < 20; i++) {
+  const isNotPreviousMove = m => m !== lastMove;
+  for (let i = 0; i < 500; i++) {
     const nullIndex = piecesCopy.indexOf(null);
-    const legalMoves = getLegalMoves(piecesCopy).filter(m => m !== lastMove); // never undo the last move we just made
+    const legalMoves = getLegalMoves(piecesCopy).filter(isNotPreviousMove); // never undo the last move we just made
     const move = legalMoves[Math.floor(Math.random() * legalMoves.length)];
     const oldPieceNumber = piecesCopy[move];
     piecesCopy[move] = null;
@@ -105,7 +118,7 @@ export default class Puzzle extends React.Component {
 
   componentWillUnmount() {
     const canvas = this.props.canvasRef.current;
-    canvas.removeEventListener('click', this.startDrag);
+    canvas.removeEventListener('click', this.onClick);
   }
 
   updateCanvas = () => {
@@ -154,13 +167,16 @@ export default class Puzzle extends React.Component {
     const { resizedImageData, canvasRef, puzzleSize } = this.props;
     const ctx = canvasRef.current.getContext('2d');
     const { height: canvasHeight, width: canvasWidth } = canvasRef.current;
+    const { height: imgHeight, width: imgWidth } = resizedImageData;
     const pieceHeight = canvasHeight / puzzleSize;
     const pieceWidth = canvasWidth / puzzleSize;
+    const imgHorizontalOffset = (canvasWidth - imgWidth) / 2;
+    const imgVerticalOffset = (canvasHeight - imgHeight) / 2;
 
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
     // First we'll draw the image to the screen
-    ctx.putImageData(resizedImageData, 0, 0);
+    ctx.putImageData(resizedImageData, imgHorizontalOffset, imgVerticalOffset);
 
     // Then we'll get each piece out
     const piecesImageData = [];
@@ -203,7 +219,25 @@ export default class Puzzle extends React.Component {
     }
   };
 
+  shuffleClicked = () => {
+    const { puzzleSize } = this.props;
+    const piecesOrder = [];
+    for (let i = 0; i < puzzleSize * puzzleSize - 1; i++) {
+      piecesOrder.push(i);
+    }
+    piecesOrder.push(null);
+    const newOrder = shufflePieces(piecesOrder);
+    this.curPiecesOrder = newOrder;
+    this.updateCanvas();
+  };
+
   render() {
-    return <></>;
+    return (
+      <div>
+        <button style={{ ...buttonStyles }} onClick={this.shuffleClicked}>
+          Reshuffle
+        </button>
+      </div>
+    );
   }
 }
