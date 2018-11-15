@@ -1,5 +1,28 @@
 import React from 'react';
 
+const canvasStyles = {
+  display: 'block',
+  maxWidth: '380px',
+  margin: '10px',
+  resize: 'both',
+  overflow: 'hidden',
+  border: '1px solid grey',
+  borderRadius: '6px',
+};
+
+const buttonStyles = {
+  border: '2px solid gray',
+  color: 'gray',
+  backgroundColor: 'white',
+  padding: '8px 10px',
+  borderRadius: '8px',
+  fontSize: '20px',
+  fontWeight: 'bold',
+  outline: 'none',
+  userSelect: 'none',
+  margin: '10px',
+};
+
 function getDefaultOffsetsAndZoomLevel({
   imgHeight,
   imgWidth,
@@ -27,7 +50,6 @@ function getDefaultOffsetsAndZoomLevel({
 
 export default class ImageResize extends React.Component {
   static defaultProps = {
-    canvasRef: null,
     loadedImage: null,
     onZoomUpdated: () => {},
     onOffsetUpdated: () => {},
@@ -35,6 +57,7 @@ export default class ImageResize extends React.Component {
 
   // We stare these as instance properties rather than on state because we
   // don't need React to re-render at all, all redering is done by us on the canvas
+  canvasRef = React.createRef();
   isDragging = false;
   imgXOffset = 0;
   imgYOffset = 0;
@@ -43,7 +66,7 @@ export default class ImageResize extends React.Component {
   dragY = 0;
 
   componentDidMount() {
-    const canvas = this.props.canvasRef.current;
+    const canvas = this.canvasRef.current;
     const { height: imgHeight, width: imgWidth } = this.props.loadedImage;
     const { height: canvasHeight, width: canvasWidth } = canvas;
     const { xOffset, yOffset, zoomLevel } = getDefaultOffsetsAndZoomLevel({
@@ -82,8 +105,9 @@ export default class ImageResize extends React.Component {
   }
 
   updateCanvas = () => {
-    if (!this.props.canvasRef) return;
-    const { loadedImage, canvasRef } = this.props;
+    if (!this.canvasRef) return;
+    const { loadedImage } = this.props;
+    const { canvasRef } = this;
     const ctx = canvasRef.current.getContext('2d');
     const { height: imgHeight, width: imgWidth } = loadedImage;
     const { height: canvasHeight, width: canvasWidth } = canvasRef.current;
@@ -155,14 +179,25 @@ export default class ImageResize extends React.Component {
 
   render() {
     return (
-      <input
-        type="range"
-        onChange={this.onZoomChange}
-        min="0"
-        max="1"
-        defaultValue={this.zoomLevel}
-        step="0.01"
-      />
+      <div>
+        <canvas style={canvasStyles} height="300" ref={this.canvasRef} />
+        <input
+          type="range"
+          onChange={this.onZoomChange}
+          min="0"
+          max="1"
+          defaultValue={this.zoomLevel}
+          step="0.01"
+        />
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <button style={buttonStyles} onClick={this.onBackClick}>
+            Back
+          </button>
+          <button style={buttonStyles} onClick={this.onNextClick}>
+            Next
+          </button>
+        </div>
+      </div>
     );
   }
 }

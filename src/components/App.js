@@ -28,14 +28,12 @@ const canvasStyles = curState => ({
 
 export default class App extends React.Component {
   state = {
-    backEnabled: false,
-    nextEnabled: false,
-    loadedImage: null,
     resizedImageData: null,
     curState: 'IMAGE_UPLOAD',
   };
   canvasRef = React.createRef();
   // values from the resizing and centering step
+  loadedImage = null;
   xOffset = 0;
   yOffset = 0;
   zoomLevel = 1;
@@ -44,8 +42,6 @@ export default class App extends React.Component {
     if (this.state.curState === 'IMAGE_RESIZE') {
       this.setState({
         curState: 'IMAGE_UPLOAD',
-        backEnabled: false,
-        nextEnabled: !!this.state.loadedImage,
       });
     }
     if (this.state.curState === 'PUZZLE') {
@@ -62,7 +58,7 @@ export default class App extends React.Component {
     if (this.state.curState === 'IMAGE_RESIZE') {
       const canvas = this.canvasRef.current;
       const ctx = canvas.getContext('2d');
-      const { height: imgHeight, width: imgWidth } = this.state.loadedImage;
+      const { height: imgHeight, width: imgWidth } = this.loadedImage;
       const { height: canvasHeight, width: canvasWidth } = canvas;
       const newImgHeight = imgHeight * this.zoomLevel;
       const newImgWidth = imgWidth * this.zoomLevel;
@@ -84,12 +80,11 @@ export default class App extends React.Component {
     }
   };
 
-  onFileLoaded = e => {
-    const img = new Image();
-    img.onload = () => {
-      this.setState({ loadedImage: img, nextEnabled: true });
-    };
-    img.src = e.target.result;
+  onImageUploaded = img => {
+    this.loadedImage = img;
+    this.setState({
+      curState: 'IMAGE_RESIZE',
+    });
   };
 
   onZoomUpdated = newZoom => {
@@ -113,11 +108,6 @@ export default class App extends React.Component {
         {this.state.curState === 'PUZZLE' && (
           <p>Click the pieces to move them around</p>
         )}
-        <canvas
-          style={canvasStyles(this.state.curState)}
-          height="300"
-          ref={this.canvasRef}
-        />
         <div
           style={{
             display: 'flex',
@@ -129,14 +119,14 @@ export default class App extends React.Component {
           {this.state.curState === 'IMAGE_UPLOAD' && (
             <ImageUpload
               canvasRef={this.canvasRef}
-              onFileLoaded={this.onFileLoaded}
-              loadedImage={this.state.loadedImage}
+              onNextClicked={this.onImageUploaded}
+              defaultLoadedImage={this.loadedImage}
             />
           )}
           {this.state.curState === 'IMAGE_RESIZE' && (
             <ImageResize
               canvasRef={this.canvasRef}
-              loadedImage={this.state.loadedImage}
+              loadedImage={this.loadedImage}
               onZoomUpdated={this.onZoomUpdated}
               onOffsetUpdated={this.onOffsetUpdated}
             />
