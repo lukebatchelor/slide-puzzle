@@ -1,5 +1,7 @@
 import React from 'react';
 
+import Timer from './Timer';
+
 const buttonStyles = {
   border: '2px solid gray',
   color: 'gray',
@@ -92,6 +94,10 @@ export default class Puzzle extends React.Component {
     canvasRef: null,
     resizedImageData: null,
     puzzleSize: 3,
+  };
+
+  state = {
+    solved: false,
   };
 
   // array of image data of all pieces in correct order, t->b l->r
@@ -216,6 +222,7 @@ export default class Puzzle extends React.Component {
       curPiecesOrder[pieceIdx] = null;
       curPiecesOrder[nullIdx] = oldValue;
       this.updateCanvas();
+      this.checkSolved();
     }
   };
 
@@ -229,11 +236,27 @@ export default class Puzzle extends React.Component {
     const newOrder = shufflePieces(piecesOrder);
     this.curPiecesOrder = newOrder;
     this.updateCanvas();
+    this.setState({ solved: false });
+  };
+
+  checkSolved = () => {
+    const { curPiecesOrder } = this;
+
+    const solved = curPiecesOrder.every((pieceNo, idx) => {
+      return pieceNo === idx || pieceNo === null;
+    });
+
+    if (solved) {
+      this.setState({ solved: true });
+    }
   };
 
   render() {
     return (
       <div>
+        <div>
+          <Timer running={!this.state.solved} />
+        </div>
         <button style={{ ...buttonStyles }} onClick={this.shuffleClicked}>
           Reshuffle
         </button>
