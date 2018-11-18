@@ -107,6 +107,7 @@ export default class Puzzle extends React.Component {
 
   state = {
     solved: false,
+    showHint: false,
   };
 
   // array of image data of all pieces in correct order, t->b l->r
@@ -150,7 +151,7 @@ export default class Puzzle extends React.Component {
 
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-    if (!this.state.solved) {
+    if (!this.state.solved && !this.state.showHint) {
       for (let i = 0; i < curPiecesOrder.length; i++) {
         const pieceNumber = curPiecesOrder[i];
         if (pieceNumber == null) continue;
@@ -278,6 +279,17 @@ export default class Puzzle extends React.Component {
     }
   };
 
+  hintOn = e => {
+    this.setState({ showHint: true }, this.updateCanvas);
+  };
+
+  hintOff = e => {
+    // prevent default in case we are coming from the touchend event which will
+    // refire the mousedown and mouseup events
+    e.preventDefault();
+    this.setState({ showHint: false }, this.updateCanvas);
+  };
+
   render() {
     const { solved } = this.state;
     return (
@@ -292,9 +304,20 @@ export default class Puzzle extends React.Component {
           height="300"
           ref={this.canvasRef}
         />
-        <button style={buttonStyles} onClick={this.shuffleClicked}>
-          Reshuffle
-        </button>
+        <div style={{ display: 'flex', justifyContent: 'space-around' }}>
+          <button style={buttonStyles} onClick={this.shuffleClicked}>
+            Reshuffle
+          </button>
+          <button
+            style={buttonStyles}
+            onMouseDown={this.hintOn}
+            onMouseUp={this.hintOff}
+            onTouchStart={this.hintOn}
+            onTouchEnd={this.hintOff}
+          >
+            Hint
+          </button>
+        </div>
       </div>
     );
   }
