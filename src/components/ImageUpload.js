@@ -108,6 +108,7 @@ export default class ImageUpload extends React.Component {
   render() {
     return (
       <div>
+        <p>To begin, upload an image!</p>
         <canvas style={canvasStyles} height="300" ref={this.canvasRef} />
         <div
           style={{

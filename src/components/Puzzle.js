@@ -14,6 +14,15 @@ const buttonStyles = {
   userSelect: 'none',
 };
 
+const canvasStyles = {
+  maxWidth: '380px',
+  margin: '10px',
+  resize: 'both',
+  overflow: 'hidden',
+  border: '1px solid grey',
+  borderRadius: '6px',
+};
+
 // Return an array of indexes of pieces that can legally be moved
 // We will know which piece can be moved by looking at the pieces order, finding
 // where the null is (the gap piece) and looking for which indexes would neighbour
@@ -91,7 +100,6 @@ function clickPosToPieceIdx(
 
 export default class Puzzle extends React.Component {
   static defaultProps = {
-    canvasRef: null,
     resizedImageData: null,
     puzzleSize: 3,
   };
@@ -104,9 +112,11 @@ export default class Puzzle extends React.Component {
   allPiecesImageData = [];
   // Array of indexes of where each piece currently sits t->b, l->r
   curPiecesOrder = [];
+  canvasRef = React.createRef();
+  timerRef = React.createRef();
 
   componentDidMount() {
-    const canvas = this.props.canvasRef.current;
+    const canvas = this.canvasRef.current;
     const puzzleSize = this.props.puzzleSize;
 
     this.allPiecesImageData = this.getPiecesImageData();
@@ -123,30 +133,41 @@ export default class Puzzle extends React.Component {
   }
 
   componentWillUnmount() {
-    const canvas = this.props.canvasRef.current;
+    const canvas = this.canvasRef.current;
     canvas.removeEventListener('click', this.onClick);
   }
 
   updateCanvas = () => {
-    if (!this.props.canvasRef || !this.allPiecesImageData.length) return;
-    const { canvasRef, puzzleSize } = this.props;
-    const { allPiecesImageData, curPiecesOrder } = this;
+    if (!this.canvasRef || !this.allPiecesImageData.length) return;
+    const { puzzleSize, resizedImageData } = this.props;
+    const { canvasRef, allPiecesImageData, curPiecesOrder } = this;
     const ctx = canvasRef.current.getContext('2d');
     const { height: canvasHeight, width: canvasWidth } = canvasRef.current;
+    const { height: imgHeight, width: imgWidth } = resizedImageData;
+    const imgHorizontalOffset = (canvasWidth - imgWidth) / 2;
+    const imgVerticalOffset = (canvasHeight - imgHeight) / 2;
 
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-    for (let i = 0; i < curPiecesOrder.length; i++) {
-      const pieceNumber = curPiecesOrder[i];
-      if (pieceNumber == null) continue;
-      const pieceImageData = allPiecesImageData[pieceNumber];
-      const { x, y } = indexToXandY(i, puzzleSize);
-      const xOffset = x * (canvasWidth / puzzleSize);
-      const yOffset = y * (canvasHeight / puzzleSize);
-      ctx.putImageData(pieceImageData, xOffset, yOffset);
-    }
+    if (!this.state.solved) {
+      for (let i = 0; i < curPiecesOrder.length; i++) {
+        const pieceNumber = curPiecesOrder[i];
+        if (pieceNumber == null) continue;
+        const pieceImageData = allPiecesImageData[pieceNumber];
+        const { x, y } = indexToXandY(i, puzzleSize);
+        const xOffset = x * (canvasWidth / puzzleSize);
+        const yOffset = y * (canvasHeight / puzzleSize);
+        ctx.putImageData(pieceImageData, xOffset, yOffset);
+      }
 
-    this.drawGrid(ctx, canvasHeight, canvasWidth);
+      this.drawGrid(ctx, canvasHeight, canvasWidth);
+    } else {
+      ctx.putImageData(
+        resizedImageData,
+        imgHorizontalOffset,
+        imgVerticalOffset
+      );
+    }
   };
 
   drawGrid = (ctx, canvasHeight, canvasWidth) => {
@@ -169,8 +190,9 @@ export default class Puzzle extends React.Component {
   };
 
   getPiecesImageData = () => {
-    if (!this.props.canvasRef) return;
-    const { resizedImageData, canvasRef, puzzleSize } = this.props;
+    if (!this.canvasRef) return;
+    const { resizedImageData, puzzleSize } = this.props;
+    const { canvasRef } = this;
     const ctx = canvasRef.current.getContext('2d');
     const { height: canvasHeight, width: canvasWidth } = canvasRef.current;
     const { height: imgHeight, width: imgWidth } = resizedImageData;
@@ -202,9 +224,9 @@ export default class Puzzle extends React.Component {
   };
 
   onClick = e => {
-    const { canvasRef, puzzleSize } = this.props;
+    const { puzzleSize } = this.props;
+    const { curPiecesOrder, canvasRef } = this;
     const { height: canvasHeight, width: canvasWidth } = canvasRef.current;
-    const { curPiecesOrder } = this;
     const pieceIdx = clickPosToPieceIdx(
       e.offsetX,
       e.offsetY,
@@ -236,6 +258,8 @@ export default class Puzzle extends React.Component {
     const newOrder = shufflePieces(piecesOrder);
     this.curPiecesOrder = newOrder;
     this.updateCanvas();
+    this.timerRef.current.stopTimer();
+    this.timerRef.current.startTimer();
     this.setState({ solved: false });
   };
 
@@ -248,16 +272,21 @@ export default class Puzzle extends React.Component {
 
     if (solved) {
       this.setState({ solved: true });
+      this.updateCanvas();
     }
   };
 
   render() {
+    const { solved } = this.state;
     return (
       <div>
+        {solved && <h1>Congratulations!</h1>}
+        {!solved && <p>Click the pieces to move them around</p>}
         <div>
-          <Timer running={!this.state.solved} />
+          <Timer running={!solved} ref={this.timerRef} />
         </div>
-        <button style={{ ...buttonStyles }} onClick={this.shuffleClicked}>
+        <canvas style={canvasStyles} height="300" ref={this.canvasRef} />
+        <button style={buttonStyles} onClick={this.shuffleClicked}>
           Reshuffle
         </button>
       </div>

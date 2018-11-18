@@ -36,10 +36,16 @@ export default class Timer extends React.Component {
   startTimer = () => {
     this.timeStarted = new Date();
     this.intervalTimer = setInterval(this.tick, 1000);
+    this.setState({
+      timeMins: '00',
+      timeSecs: '00',
+    });
   };
 
   stopTimer = () => {
-    clearInterval(this.intervalTimer);
+    if (this.intervalTimer) {
+      clearInterval(this.intervalTimer);
+    }
     this.intervalTimer = null;
   };
 
@@ -56,7 +62,7 @@ export default class Timer extends React.Component {
   render() {
     const { timeMins, timeSecs } = this.state;
     return (
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: '20px', fontSize: '32px' }}>
         {timeMins}:{timeSecs}
       </div>
     );

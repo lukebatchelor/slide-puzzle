@@ -53,6 +53,8 @@ export default class ImageResize extends React.Component {
     loadedImage: null,
     onZoomUpdated: () => {},
     onOffsetUpdated: () => {},
+    onNextClick: () => {},
+    onBackClick: () => {},
   };
 
   // We stare these as instance properties rather than on state because we
@@ -94,7 +96,7 @@ export default class ImageResize extends React.Component {
   }
 
   componentWillUnmount() {
-    const canvas = this.props.canvasRef.current;
+    const canvas = this.canvasRef.current;
     canvas.removeEventListener('mousedown', this.startDrag);
     canvas.removeEventListener('mousemove', this.updateDrag);
     canvas.removeEventListener('mouseup', this.endDrag);
@@ -177,9 +179,30 @@ export default class ImageResize extends React.Component {
     this.updateCanvas();
   };
 
+  finaliseResize = () => {
+    const canvas = this.canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const { height: imgHeight, width: imgWidth } = this.props.loadedImage;
+    const { height: canvasHeight, width: canvasWidth } = canvas;
+    const newImgHeight = imgHeight * this.zoomLevel;
+    const newImgWidth = imgWidth * this.zoomLevel;
+
+    // Now we only want to get the image data for the parts of the image that
+    // are visible in the canvas, so we clamp our values to those edges
+    const resizedImageData = ctx.getImageData(
+      Math.max(this.xOffset, 0),
+      Math.max(this.yOffset, 0),
+      Math.min(newImgWidth, canvasWidth),
+      Math.min(newImgHeight, canvasHeight)
+    );
+
+    this.props.onImageResized(resizedImageData);
+  };
+
   render() {
     return (
       <div>
+        <p>Now resize and center the face!</p>
         <canvas style={canvasStyles} height="300" ref={this.canvasRef} />
         <input
           type="range"
@@ -190,10 +213,10 @@ export default class ImageResize extends React.Component {
           step="0.01"
         />
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <button style={buttonStyles} onClick={this.onBackClick}>
+          <button style={buttonStyles} onClick={this.props.onBackClick}>
             Back
           </button>
-          <button style={buttonStyles} onClick={this.onNextClick}>
+          <button style={buttonStyles} onClick={this.finaliseResize}>
             Next
           </button>
         </div>
