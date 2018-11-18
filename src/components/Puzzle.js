@@ -1,6 +1,7 @@
 import React from 'react';
 
 import Timer from './Timer';
+import CongratsBanner from './CongratsBanner';
 
 const buttonStyles = {
   border: '2px solid gray',
@@ -14,14 +15,14 @@ const buttonStyles = {
   userSelect: 'none',
 };
 
-const canvasStyles = {
+const canvasStyles = solved => ({
   maxWidth: '380px',
   margin: '10px',
   resize: 'both',
   overflow: 'hidden',
-  border: '1px solid grey',
+  border: solved ? 0 : '1px solid grey',
   borderRadius: '6px',
-};
+});
 
 // Return an array of indexes of pieces that can legally be moved
 // We will know which piece can be moved by looking at the pieces order, finding
@@ -257,10 +258,11 @@ export default class Puzzle extends React.Component {
     piecesOrder.push(null);
     const newOrder = shufflePieces(piecesOrder);
     this.curPiecesOrder = newOrder;
-    this.updateCanvas();
-    this.timerRef.current.stopTimer();
-    this.timerRef.current.startTimer();
-    this.setState({ solved: false });
+    this.setState({ solved: false }, () => {
+      this.updateCanvas();
+      this.timerRef.current.stopTimer();
+      this.timerRef.current.startTimer();
+    });
   };
 
   checkSolved = () => {
@@ -280,12 +282,16 @@ export default class Puzzle extends React.Component {
     const { solved } = this.state;
     return (
       <div>
-        {solved && <h1>Congratulations!</h1>}
+        {solved && <CongratsBanner />}
         {!solved && <p>Click the pieces to move them around</p>}
         <div>
           <Timer running={!solved} ref={this.timerRef} />
         </div>
-        <canvas style={canvasStyles} height="300" ref={this.canvasRef} />
+        <canvas
+          style={canvasStyles(this.state.solved)}
+          height="300"
+          ref={this.canvasRef}
+        />
         <button style={buttonStyles} onClick={this.shuffleClicked}>
           Reshuffle
         </button>
